@@ -68,12 +68,13 @@ async function getAllRoutines() {
 
 async function getAllPublicRoutines() {
   try {
-    const { rows } = await client.query(`
-      SELECT * FROM routines
+    const { rows: routines } = await client.query(`
+    SELECT routines.*, users.username AS "creatorName" FROM routines
+  JOIN users ON routines."creatorId" = users.id
       WHERE "isPublic" = true;
     `);
 
-    return rows;
+    return await attachActivitiesToRoutines(routines);
   } catch (error) {
     console.log(error);
   }
@@ -81,9 +82,10 @@ async function getAllPublicRoutines() {
 
 async function getAllRoutinesByUser({ username }) {
   try {
-    const { rows } = await client.query(
+    const { rows: routines } = await client.query(
       `
-      SELECT * FROM routines
+      SELECT routines.*, users.username AS "creatorName" FROM routines
+  JOIN users ON routines."creatorId" = users.id
       WHERE "creatorId" = (
         SELECT id FROM users WHERE username = $1
       );
@@ -91,17 +93,19 @@ async function getAllRoutinesByUser({ username }) {
       [username]
     );
 
-    return rows;
+    return await attachActivitiesToRoutines(routines);
   } catch (error) {
     console.log(error);
   }
+
 }
 
 async function getPublicRoutinesByUser({ username }) {
   try {
-    const { rows } = await client.query(
+    const { rows: routines } = await client.query(
       `
-      SELECT * FROM routines
+      SELECT routines.*, users.username AS "creatorName" FROM routines
+  JOIN users ON routines."creatorId" = users.id
       WHERE "creatorId" = (
         SELECT id FROM users WHERE username = $1
       )
@@ -110,7 +114,7 @@ async function getPublicRoutinesByUser({ username }) {
       [username]
     );
 
-    return rows;
+    return await attachActivitiesToRoutines(routines);
   } catch (error) {
     console.log(error);
   }
