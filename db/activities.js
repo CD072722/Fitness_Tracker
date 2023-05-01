@@ -7,6 +7,7 @@ async function createActivity({ name, description }) {
 
 async function getAllActivities() {
   // select and return an array of all activities
+ 
 }
 
 async function getActivityById(id) {}
