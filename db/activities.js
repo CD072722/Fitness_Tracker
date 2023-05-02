@@ -1,22 +1,25 @@
-const client = require('./client');
+const client = require("./client");
 
 // database functions
 async function createActivity({ name, description }) {
-  {
-    try {
-      const { rows: [ activities ] } = await client.query(`
+  try {
+    const {
+      rows: [activities],
+    } = await client.query(
+      `
         INSERT INTO activities(name, description) 
         VALUES($1, $2)
         RETURNING *;
-      `, [name, description]);
-  
-    return activities
-    } catch (error) {
-      throw error;
-    }
+      `,
+      [name, description]
+    );
+
+    return activities;
+  } catch (error) {
+    console.log(error);
   }
-  // return the new activity
 }
+// return the new activity
 
 async function getAllActivities() {
   // select and return an array of all activities
@@ -26,62 +29,63 @@ async function getAllActivities() {
       FROM activities;
     `);
 
-   
-
     return rows;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
- 
 }
 
 async function getActivityById(id) {
-
   try {
-    const { rows: [ activities ]  } = await client.query(`
+    const {
+      rows: [activities],
+    } = await client.query(
+      `
       SELECT *
       FROM activities
       WHERE id=$1;
-    `, [id]);
+    `,
+      [id]
+    );
 
     if (!activities) {
       throw {
         name: "Activity Not Found Error",
-        message: "Could not find an activity with that Id"
+        message: "Could not find an activity with that Id",
       };
     }
     return activities;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
 async function getActivityByName(name) {
   try {
-    const { rows: [activity] } = await client.query(`
+    const {
+      rows: [activity],
+    } = await client.query(
+      `
       SELECT *
       FROM activities
       WHERE name=$1;
-    `,[name]);
+    `,
+      [name]
+    );
 
     return activity;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
-
-
-
-
-
 
 // used as a helper inside db/routines.js
 async function attachActivitiesToRoutines(routines) {}
 
 async function updateActivity({ id, ...fields }) {
-  const setString = Object.keys(fields).map(
-    (key, index) => `"${ key }"=$${ index + 1 }`
-  ).join(', ');
+  const setString = Object.keys(fields)
+    .map((key, index) => `"${key}"=$${index + 1}`)
+    .join(", ");
 
   // return early if this is called without fields
   if (setString.length === 0) {
@@ -89,16 +93,21 @@ async function updateActivity({ id, ...fields }) {
   }
 
   try {
-    const { rows: [ activities ] } = await client.query(`
+    const {
+      rows: [activities],
+    } = await client.query(
+      `
       UPDATE activities
-      SET ${ setString }
-      WHERE id=${ id }
+      SET ${setString}
+      WHERE id=${id}
       RETURNING *;
-    `, Object.values(fields));
+    `,
+      Object.values(fields)
+    );
 
     return activities;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
   // don't try to update the id
   // do update the name and description
