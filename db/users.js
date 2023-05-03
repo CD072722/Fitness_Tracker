@@ -29,7 +29,7 @@ async function getUserByUsername(userName) {
       FROM users
       WHERE username = $1;
     `, [userName]);
-    console.log("getUserByUsername", user);
+   
     return user;
   } catch (error) {
     console.log(error);
