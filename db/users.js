@@ -9,7 +9,7 @@ async function createUser({ username, password }) {
       INSERT INTO users(username, password)
       VALUES($1, $2)
       ON CONFLICT (username) DO NOTHING
-      RETURNING username
+      RETURNING username, id
     `, [username, password])
     
     //causing problems right now

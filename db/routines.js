@@ -3,15 +3,14 @@ const client = require("./client");
 async function createRoutine({ creatorId, isPublic, name, goal }) {
   try {
     const { rows: [routine] } = await client.query(`
-  INSERT INTO routines("creatorId", "isPublic", "name", "goal") 
+  INSERT INTO routines("creatorId", "isPublic", name, goal) 
   VALUES($1, $2, $3, $4) 
   RETURNING *;
 `, [creatorId, isPublic, name, goal]);
-
-
-    return routine;
+  
+    return routine ;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -26,7 +25,7 @@ async function getRoutineById(id) {
 
     return rows[0];
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -35,25 +34,28 @@ async function getRoutinesWithoutActivities() {
     const { rows } = await client.query(`
       SELECT * FROM routines
       WHERE id NOT IN (
-        SELECT routine_id FROM routine_activities
+        SELECT "routineId" FROM routine_activities
       );
     `);
 
     return rows;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
 async function getAllRoutines() {
   try {
     const { rows } = await client.query(`
-      SELECT * FROM routines;
+      SELECT routines.*, array_agg(routine_activities.*) AS activities
+      FROM routines
+      RIGHT JOIN routine_activities ON routines.id = routine_activities."routineId"
+      GROUP BY routines.id;
     `);
-
+    console.log(rows);
     return rows;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -61,12 +63,12 @@ async function getAllPublicRoutines() {
   try {
     const { rows } = await client.query(`
       SELECT * FROM routines
-      WHERE isPublic = true;
+      WHERE "isPublic" = true;
     `);
 
     return rows;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -81,7 +83,7 @@ async function getAllRoutinesByUser({ username }) {
 
     return rows;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -92,12 +94,12 @@ async function getPublicRoutinesByUser({ username }) {
       WHERE "creatorId" = (
         SELECT id FROM users WHERE username = $1
       )
-      AND isPublic = true;
+      AND "isPublic" = true;
     `, [username]);
 
     return rows;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -106,14 +108,14 @@ async function getPublicRoutinesByActivity({ id }) {
     const { rows } = await client.query(`
       SELECT routines.* FROM routines
       JOIN routine_activities
-      ON routines.id = routine_activities.routine_id
-      WHERE routine_activities.activity_id = $1
-      AND routines.isPublic = true;
+      ON routines.id = routine_activities."routineId"
+      WHERE routine_activities."activityId = $1
+      AND routines."isPublic" = true;
     `, [id]);
 
     return rows;
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -134,7 +136,7 @@ async function updateRoutine({ id, ...fields }) {
 
     return rows[0];
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
@@ -148,7 +150,7 @@ async function destroyRoutine(id) {
 
     return rows[0];
   } catch (error) {
-    throw error;
+    console.log(error);
   }
 }
 
