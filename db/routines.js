@@ -57,8 +57,7 @@ async function getAllRoutines() {
   SELECT routines.*, users.username AS "creatorName" FROM routines
   JOIN users ON routines."creatorId" = users.id
 
-`);
-   
+`);  
     
    
     return await attachActivitiesToRoutines(routines);
