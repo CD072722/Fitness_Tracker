@@ -1,6 +1,6 @@
 const express = require("express");
 const usersRouter = express.Router();
-const { getAllUsers, getUserByUsername, createUser, getPublicRoutinesByUser } = require("../db");
+const { getAllUsers, getUserByUsername, createUser, getPublicRoutinesByUser, getAllRoutinesByUser } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
 const bcrypt = require("bcrypt");
@@ -21,10 +21,11 @@ usersRouter.get("/me", async (req, res, next) => {
       const token = req.headers.authorization?.split(" ")[1];
       if (!token) {
         // No token provided
-        return next({
+        res.status(401);
+        next({
           name: "UnauthorizedError",
-          message: "No token provided",
-          status: 401, // Set the status code to 401 (Unauthorized)
+          message: "You must be logged in to perform this action",
+        // Set the status code to 401 (Unauthorized)
         });
       }
   
@@ -34,10 +35,11 @@ usersRouter.get("/me", async (req, res, next) => {
       if (user) {
         res.send(user);
       } else {
+        res.status(401);
         next({
           name: "UnauthorizedError",
           message: "Invalid token",
-          status: 401, // Set the status code to 401 (Unauthorized)
+        // Set the status code to 401 (Unauthorized)
         });
       }
     } catch (error) {
@@ -45,28 +47,29 @@ usersRouter.get("/me", async (req, res, next) => {
       next(error);
     }
   });
-  
   
   usersRouter.get("/:username/routines", async (req, res, next) => {
     try {
       const username = req.params.username;
+      const token = req.headers.authorization?.split(" ")[1];
       
-      const routines = await getPublicRoutinesByUser(username);
-      
-      if (routines.length > 0) {
+      const decodedToken = jwt.verify(token, JWT_SECRET);
+      const loggedInUsername = decodedToken.username;
+  
+      if (loggedInUsername === username) {
+        const routines = await getAllRoutinesByUser(username);
         res.send(routines);
       } else {
-        next({
-          name: "NotFoundError",
-          message: "No public routines found for the user",
-          status: 401, // Set the status code to 401 (Unauthorized)
-        });
+        const routines = await getPublicRoutinesByUser(username);
+        res.send(routines);
       }
     } catch (error) {
       console.log(error);
       next(error);
     }
   });
+  
+ 
 
 usersRouter.post("/login", async (req, res, next) => {
     const { username, password } = req.body;
