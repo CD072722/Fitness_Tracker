@@ -22,7 +22,7 @@ const {
   createFakeUser,
 } = require("../helpers");
 
-describe("DB Routine Activities", () => {
+describe.only("DB Routine Activities", () => {
   let fakeActivity;
   let fakeRoutine;
   let routineActivityData;
@@ -89,7 +89,9 @@ describe("DB Routine Activities", () => {
   });
 
   describe("updateRoutineActivity({ id, count, duration })", () => {
+
   it("Finds the routine with id equal to the passed in id. Updates the count or duration as necessary.", async () => {
+
       const fakeRoutineActivity = await createFakeRoutineActivity();
 
       const newRoutineActivityData = {

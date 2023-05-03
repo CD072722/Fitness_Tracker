@@ -7,6 +7,7 @@ async function addActivityToRoutine({
   duration,
 }) {
   try {
+
     const {
       rows: [routine_activity],
     } = await client.query(
@@ -66,10 +67,13 @@ async function updateRoutineActivity({ id, ...fields }) {
 
     const { rows } = await client.query(
       `
+
+
       UPDATE routine_activities
       SET ${setString}
       WHERE id = $1
       RETURNING *;
+
     `,
       values
     );
@@ -113,6 +117,7 @@ async function canEditRoutineActivity(routineActivityId, userId) {
     console.log(error);
   }
 }
+
 
 
 module.exports = {

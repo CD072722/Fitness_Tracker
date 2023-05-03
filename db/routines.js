@@ -17,6 +17,7 @@ async function createRoutine({ creatorId, isPublic, name, goal }) {
 
 
 async function getRoutineById(id) {
+
   try {
     const { rows } = await client.query(`
       SELECT * FROM routines
@@ -42,6 +43,7 @@ async function getRoutinesWithoutActivities() {
   } catch (error) {
     console.log(error);
   }
+
 }
 
 async function getAllRoutines() {
@@ -73,6 +75,7 @@ async function getAllPublicRoutines() {
 }
 
 async function getAllRoutinesByUser({ username }) {
+
   try {
     const { rows } = await client.query(`
       SELECT * FROM routines
@@ -152,6 +155,7 @@ async function destroyRoutine(id) {
   } catch (error) {
     console.log(error);
   }
+
 }
 
 module.exports = {
