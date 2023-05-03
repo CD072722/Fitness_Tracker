@@ -122,22 +122,24 @@ async function getPublicRoutinesByUser({ username }) {
 
 async function getPublicRoutinesByActivity({ id }) {
   try {
-    const { rows } = await client.query(
+    const { rows: routines } = await client.query(
       `
-      SELECT routines.* FROM routines
+      SELECT routines.*, users.username AS "creatorName" FROM routines
+      JOIN users ON routines."creatorId" = users.id
       JOIN routine_activities
       ON routines.id = routine_activities."routineId"
-      WHERE routine_activities."activityId = $1
+      WHERE routine_activities."activityId" = $1
       AND routines."isPublic" = true;
     `,
       [id]
     );
 
-    return rows;
+    return await attachActivitiesToRoutines(routines);
   } catch (error) {
     console.log(error);
   }
 }
+
 
 async function updateRoutine({ id, ...fields }) {
   try {
