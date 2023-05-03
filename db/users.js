@@ -14,8 +14,15 @@ async function createUser({ username, password }) {
       INSERT INTO users(username, password)
       VALUES($1, $2)
       ON CONFLICT (username) DO NOTHING
-      RETURNING username;
-    `, [userToAdd.username, userToAdd.hashedPassword]);
+
+      RETURNING username, id
+    `, [username, password])
+    
+    //causing problems right now
+    // const SALT_COUNT = 10;
+    // const hashedPassword = await bcrypt.hash(password, SALT_COUNT);
+
+
 
     return user;
   } catch (error) {
