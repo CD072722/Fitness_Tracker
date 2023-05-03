@@ -1,28 +1,34 @@
 const client = require("./client");
+const {attachActivitiesToRoutines} = require("./activities");
 
 async function createRoutine({ creatorId, isPublic, name, goal }) {
   try {
-    const { rows: [routine] } = await client.query(`
+    const {
+      rows: [routine],
+    } = await client.query(
+      `
   INSERT INTO routines("creatorId", "isPublic", name, goal) 
   VALUES($1, $2, $3, $4) 
   RETURNING *;
-`, [creatorId, isPublic, name, goal]);
-  
-    return routine ;
+`,
+      [creatorId, isPublic, name, goal]
+    );
+
+    return routine;
   } catch (error) {
     console.log(error);
   }
 }
 
-
-
 async function getRoutineById(id) {
-
   try {
-    const { rows } = await client.query(`
+    const { rows } = await client.query(
+      `
       SELECT * FROM routines
       WHERE id = $1;
-    `, [id]);
+    `,
+      [id]
+    );
 
     return rows[0];
   } catch (error) {
@@ -43,19 +49,19 @@ async function getRoutinesWithoutActivities() {
   } catch (error) {
     console.log(error);
   }
-
 }
 
 async function getAllRoutines() {
   try {
-    const { rows } = await client.query(`
-      SELECT routines.*, array_agg(routine_activities.*) AS activities
-      FROM routines
-      RIGHT JOIN routine_activities ON routines.id = routine_activities."routineId"
-      GROUP BY routines.id;
-    `);
-    console.log(rows);
-    return rows;
+    const { rows: routines } = await client.query(`
+  SELECT routines.*, users.username AS "creatorName" FROM routines
+  JOIN users ON routines."creatorId" = users.id
+
+`);
+   
+    
+   
+    return await attachActivitiesToRoutines(routines);
   } catch (error) {
     console.log(error);
   }
@@ -75,14 +81,16 @@ async function getAllPublicRoutines() {
 }
 
 async function getAllRoutinesByUser({ username }) {
-
   try {
-    const { rows } = await client.query(`
+    const { rows } = await client.query(
+      `
       SELECT * FROM routines
       WHERE "creatorId" = (
         SELECT id FROM users WHERE username = $1
       );
-    `, [username]);
+    `,
+      [username]
+    );
 
     return rows;
   } catch (error) {
@@ -92,13 +100,16 @@ async function getAllRoutinesByUser({ username }) {
 
 async function getPublicRoutinesByUser({ username }) {
   try {
-    const { rows } = await client.query(`
+    const { rows } = await client.query(
+      `
       SELECT * FROM routines
       WHERE "creatorId" = (
         SELECT id FROM users WHERE username = $1
       )
       AND "isPublic" = true;
-    `, [username]);
+    `,
+      [username]
+    );
 
     return rows;
   } catch (error) {
@@ -108,13 +119,16 @@ async function getPublicRoutinesByUser({ username }) {
 
 async function getPublicRoutinesByActivity({ id }) {
   try {
-    const { rows } = await client.query(`
+    const { rows } = await client.query(
+      `
       SELECT routines.* FROM routines
       JOIN routine_activities
       ON routines.id = routine_activities."routineId"
       WHERE routine_activities."activityId = $1
       AND routines."isPublic" = true;
-    `, [id]);
+    `,
+      [id]
+    );
 
     return rows;
   } catch (error) {
@@ -124,18 +138,21 @@ async function getPublicRoutinesByActivity({ id }) {
 
 async function updateRoutine({ id, ...fields }) {
   try {
-    const setString = Object.keys(fields).map(
-      (key, index) => `"${key}"=$${index + 2}`
-    ).join(", ");
+    const setString = Object.keys(fields)
+      .map((key, index) => `"${key}"=$${index + 2}`)
+      .join(", ");
 
     const values = [id, ...Object.values(fields)];
 
-    const { rows } = await client.query(`
+    const { rows } = await client.query(
+      `
       UPDATE routines
       SET ${setString}
       WHERE id = $1
       RETURNING *;
-    `, values);
+    `,
+      values
+    );
 
     return rows[0];
   } catch (error) {
@@ -145,17 +162,30 @@ async function updateRoutine({ id, ...fields }) {
 
 async function destroyRoutine(id) {
   try {
-    const { rows } = await client.query(`
+    // Delete routine_activities
+    await client.query(
+      `
+      DELETE FROM routine_activities
+      WHERE "routineId" = $1;
+    `,
+      [id]
+    );
+
+    // Delete routine
+    const { rows } = await client.query(
+      `
       DELETE FROM routines
       WHERE id = $1
       RETURNING *;
-    `, [id]);
+    `,
+      [id]
+    );
 
     return rows[0];
   } catch (error) {
+    await client.query("ROLLBACK");
     console.log(error);
   }
-
 }
 
 module.exports = {
