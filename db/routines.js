@@ -193,6 +193,22 @@ async function destroyRoutine(id) {
   }
 }
 
+async function canEditRoutine(routineId, userId) {
+  try {
+    const { rows } = await client.query(
+      `
+      SELECT * FROM routines
+      WHERE id = $1 AND "creatorId" = $2;
+    `,
+      [routineId, userId]
+    );
+
+    return rows.length > 0;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports = {
   getRoutineById,
   getRoutinesWithoutActivities,
@@ -204,4 +220,5 @@ module.exports = {
   createRoutine,
   updateRoutine,
   destroyRoutine,
+  canEditRoutine
 };
