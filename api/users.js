@@ -50,17 +50,17 @@ usersRouter.get("/me", async (req, res, next) => {
   
   usersRouter.get("/:username/routines", async (req, res, next) => {
     try {
-      const username = req.params.username;
+      const {username} = req.params;
       const token = req.headers.authorization?.split(" ")[1];
-      
+  
       const decodedToken = jwt.verify(token, JWT_SECRET);
       const loggedInUsername = decodedToken.username;
   
       if (loggedInUsername === username) {
-        const routines = await getAllRoutinesByUser(username);
+        const routines = await getAllRoutinesByUser({username});
         res.send(routines);
       } else {
-        const routines = await getPublicRoutinesByUser(username);
+        const routines = await getPublicRoutinesByUser({username});
         res.send(routines);
       }
     } catch (error) {
