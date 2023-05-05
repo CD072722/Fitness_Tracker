@@ -24,7 +24,7 @@ const { arrayContaining } = expect;
 
 const { getPublicRoutinesByActivity } = require("../../db");
 
-xdescribe("/api/activities", () => {
+describe("/api/activities", () => {
   describe("GET /api/activities", () => {
     it("Just returns a list of all activities in the database", async () => {
       // Create a fake activity to watch for
@@ -154,7 +154,7 @@ xdescribe("/api/activities", () => {
   });
 
   describe("GET /api/activities/:activityId/routines", () => {
-    xit("Get a list of all public routines which feature that activity", async () => {
+    it("Get a list of all public routines which feature that activity", async () => {
       const { fakeRoutines } = await createFakeUserWithRoutines("Allen");
       const fakeActivity = await createFakeActivity(
         "Weight Lifting",
@@ -178,7 +178,7 @@ xdescribe("/api/activities", () => {
       expect(response.body).toEqual(routinesFromDB);
     });
 
-    xit("Should return an error when you ask for an activity that does not exist", async () => {
+    it("Should return an error when you ask for an activity that does not exist", async () => {
       const response = await request(app).get("/api/activities/10000/routines");
 
       expectToHaveErrorMessage(response.body, ActivityNotFoundError(10000));

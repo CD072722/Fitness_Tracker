@@ -147,7 +147,7 @@ router.post('/:routineId/activities', async (req, res, next) => {
         return res.status(404).send('Routine not found');
       }
   
-     
+      console.log('Routine:', routine);
   
       // Check if the user has permission to add activities to the routine
       const token = req.headers.authorization?.split(" ")[1];
@@ -159,7 +159,7 @@ router.post('/:routineId/activities', async (req, res, next) => {
    
   
       if (!canEdit) {
-    
+        console.log(`User ${username} is not allowed to add activities to the routine`);
         res.status(403);
         next({
           name: "UnauthorizedError",

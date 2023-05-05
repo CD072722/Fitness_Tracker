@@ -51,12 +51,13 @@ async function getActivityById(id) {
     if (!activities) {
       throw {
         name: "Activity Not Found Error",
-        message: "Could not find an activity with that Id",
+        message: `Activity ${id} not found`,
       };
     }
     return activities;
   } catch (error) {
     console.log(error);
+    throw error;
   }
 }
 

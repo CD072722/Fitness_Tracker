@@ -1,82 +1,109 @@
-const express = require('express');
-const { getRoutineActivitiesByRoutine, getAllActivities, createActivity, updateActivity, getActivityById, getActivityByName } = require('../db');
+const express = require("express");
+const {
+  getRoutineActivitiesByRoutine,
+  getAllActivities,
+  createActivity,
+  updateActivity,
+  getActivityById,
+  getActivityByName,
+  getPublicRoutinesByActivity,
+} = require("../db");
 const activityRouter = express.Router();
-const {requireUser}= require("./utils")
+const { requireUser } = require("./utils");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
 
+activityRouter.get("/", async (req, res, next) => {
+  try {
+    const activities = await getAllActivities();
+    res.send(activities);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
 
-activityRouter.get("/activities/:activityId/routines", async(req, res, next)=>{
-    const {activityId}= req.params;
-        const {name, description}= req.body
-    try{
-        const getRoutineByActivityId=await getRoutineActivitiesByRoutine({ id });
-        
-
-    
-    res.send({getRoutineByActivityId})
+activityRouter.post("/", async (req, res, next) => {
+  const { name: activityName, description } = req.body;
+  const activityData = { name: activityName, description };
+  try {
+    const existingActivity = await getActivityByName(activityName);
+    if (existingActivity) {
+      res.status(401);
+      throw {
+        name: "AlreadyExists",
+        message: `An activity with name ${activityName} already exists`,
+      };
     }
-    catch ({ name, message }) {
-      
-        next({
-          name: "MissingCredentialsError",
-          message: "Please supply both a username and password"
-        })
-      }
-})
-// GET /api/activities
-activityRouter.get("/", async(req, res, next)=>{
-    try{
-        activities= await getAllActivities()
-res.send (activities)
- }
- catch (error) {
-   console.log(error)
-  }})
-// POST /api/activities
-activityRouter.post("/",  async(req, res, next)=>{
-    const {name, description}=req.body;
-    const activityData={name, description}
-    try{   
-        const name=await getActivityByName(name)
-        if(name){
-            res.status(401)
-            next({
-                name: "AlreadyExists",
-            message: "activity already exists."
-            })
-        }
-    const activity=await createActivity(activityData)
-        res.send(activity)
 
-    }
-    catch (error) {
-        console.log(error)
-       }})
+    const activity = await createActivity(activityData);
+    res.send(activity);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
 
-// PATCH /api/activities/:activityId
-activityRouter.patch("/:activityId",  async(req, res, next)=>{
-    const {activityId}= req.params
-    const{name, description}=req.body
-    const patchData={name, description}
-    const token = req.headers.authorization?.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decodedToken.id;
-    const username = decodedToken.username;
- 
-    try{
-        const activity= await getActivityById(activityId)
-        if (!activity) {
-            res.status(404).send('Activity not found');
-        } // <- Add this closing brace
-        const updatedActivity=await updateActivity(userId, patchData)
-     
-        console.log(updatedActivity)
-        res.send(updatedActivity)
+
+activityRouter.patch("/:activityId", async (req, res, next) => {
+  try {
+    const { activityId } = req.params;
+    const { name, description } = req.body;
+    const patchData = { name, description };
+    const existingActivity = await getActivityByName(name);
+
+    if (existingActivity) {
+      res.status(401);
+      return next({
+        name: "AlreadyExists",
+        message: `An activity with name ${name} already exists`,
+      });
     }
-    catch (error) {
-        console.log(error)
-        // You should also call `next` to pass the error to the error handling middleware
-        next(error)
-    }})
+
+    const nonExistantActivity = await getActivityById(activityId);
+
+    if (
+      nonExistantActivity.message === "Could not find an activity with that Id"
+    ) {
+      res.status(404);
+      return next({
+        name: "ActivityNotFoundError",
+        message: "nope",
+      });
+    }
+    // Check if an activity with the same name already exists
+
+    const updatedActivity = await updateActivity({
+      id: activityId,
+      ...patchData,
+    });
+    res.send(updatedActivity);
+  } catch (error) {
+    next(error);
+  }
+});
+
+activityRouter.get("/:activityId/routines", async (req, res, next) => {
+  const { activityId } = req.params;
+
+  try {
+    const nonExistantActivity = await getActivityById(activityId);
+    if (
+      nonExistantActivity.message === "Could not find an activity with that Id"
+    ) {
+      res.status(404);
+      return next({
+        name: "ActivityNotFoundError",
+        message: "nope",
+      });
+    }
+
+    const routines = await getPublicRoutinesByActivity({ id: activityId });
+
+    res.send(routines);
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = activityRouter;
