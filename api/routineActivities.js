@@ -8,6 +8,7 @@ const {
 const jwt = require("jsonwebtoken");
 
 // PATCH /api/routine_activities/:routineActivityId
+// PATCH /api/routine_activities/:routineActivityId
 router.patch("/:routineActivityId", async (req, res, next) => {
   try {
     const { routineActivityId } = req.params;
@@ -22,10 +23,9 @@ router.patch("/:routineActivityId", async (req, res, next) => {
     // Update the routine activity in the database
     if (!canEdit) {
       res.status(401);
-      next({
+      return next({
         name: "UnauthorizedError",
         message: `User ${userName} is not allowed to update In the evening`,
-        // Set the status code to 401 (Unauthorized)
       });
     }
     const updatedRoutineActivity = await updateRoutineActivity({
