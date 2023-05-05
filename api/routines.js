@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllRoutines, attachActivitiesToRoutines, createRoutine, canEditRoutine, destroyRoutine, getRoutineById, updateRoutine } = require('../db');
+const { getRoutineActivitiesByRoutine, addActivityToRoutine, getAllRoutines, attachActivitiesToRoutines, createRoutine, canEditRoutine, destroyRoutine, getRoutineById, updateRoutine } = require('../db');
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
@@ -81,26 +81,26 @@ router.patch('/:routineId', async (req, res, next) => {
       }
   
       const updatedFields = {};
-
-      if (isPublic) {
+  
+      if (isPublic !== undefined) {
         updatedFields.isPublic = isPublic;
-      } 
+      }
       if (name) {
         updatedFields.name = name;
       }
       if (goal) {
         updatedFields.goal = goal;
       }
-      
-  console.log(` updatedFields: ${updatedFields}`);
-      const updatedRoutine = await updateRoutine({routineId, updatedFields});
-      res.send(JSON.stringify(updatedRoutine));
+  
+      const updatedRoutine = await updateRoutine({ id: routineId, ...updatedFields });
+      res.send(updatedRoutine);
     } catch (error) {
-      console.log(error);
+     
       next(error);
     }
   });
-
+  
+  
 // DELETE /api/routines/:routineId
 router.delete("/:routineId", async (req, res, next) => {
     try {
@@ -112,7 +112,7 @@ router.delete("/:routineId", async (req, res, next) => {
 
         const canEdit = await canEditRoutine(routineId, userId);
 
-        // Update the routine activity in the database
+        
         if (!canEdit) {
             res.status(403);
             next({
@@ -121,7 +121,7 @@ router.delete("/:routineId", async (req, res, next) => {
             });
         }
 
-        // Delete the routine activity from the database
+       
         const destoryedRoutineActivity = await destroyRoutine(
             routineId
         );
@@ -133,5 +133,68 @@ router.delete("/:routineId", async (req, res, next) => {
 });
 
 // POST /api/routines/:routineId/activities
+router.post('/:routineId/activities', async (req, res, next) => {
+    try {
+      const { routineId } = req.params;
+      const { activityId, count, duration } = req.body;
+  
+    
+  
+      // Check if the routine exists
+      const routine = await getRoutineById(routineId);
+      if (!routine) {
+        console.log('Routine not found');
+        return res.status(404).send('Routine not found');
+      }
+  
+     
+  
+      // Check if the user has permission to add activities to the routine
+      const token = req.headers.authorization?.split(" ")[1];
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decodedToken.id;
+      const canEdit = await canEditRoutine(routineId, userId);
+      const username = decodedToken.username;
+  
+   
+  
+      if (!canEdit) {
+    
+        res.status(403);
+        next({
+          name: "UnauthorizedError",
+          message: `User ${username} is not allowed to add activities to the routine`,
+        });
+      }
+
+      const routineCheck = await getRoutineActivitiesByRoutine({ id: routineId });
+
+
+const isDuplicate = routineCheck.some(activity => activity.activityId === activityId);
+    if (isDuplicate) {
+      
+      res.status(400);
+      next({
+        name: "BadRequestError",
+        message: `Activity ID ${activityId} already exists in Routine ID ${routineId}`,
+      });
+    }
+
+  
+      // Add the activity to the routine
+      const addedActivity = await addActivityToRoutine({
+        routineId: routineId, // Parse routineId as an integer
+        activityId: activityId, // Parse activityId as an integer
+        count: count, // Parse count as an integer
+        duration: duration, // Parse duration as an integer
+      });     
+  
+      res.send(addedActivity);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  });
+  
 
 module.exports = router;
