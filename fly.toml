@@ -1,0 +1,23 @@
+# fly.toml app configuration file generated for still-sky-419 on 2023-05-08T12:32:41-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "still-sky-419"
+primary_region = "atl"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+
+[checks]
+  [checks.alive]
+    type = "tcp"
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "5s"
+
+[deploy]
+  release_command = "npm run seed"
