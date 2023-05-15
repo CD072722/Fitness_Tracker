@@ -18,12 +18,7 @@ app.use(express.static(path.join(__dirname, "./client/dist")));
 app.use("/api", apiRouter);
 
 app.get("*", (req, res) => {
-  res
-    .status(404)
-    .send({
-      error: "404 - Not Found",
-      message: "No route found for the requested URL",
-    });
+  res.sendFile(path.join(__dirname, "./client/dist", "index.html"));
 });
 // error handling middleware
 app.use((error, req, res, next) => {
