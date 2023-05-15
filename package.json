@@ -8,6 +8,7 @@
     "seed": "node ./db/seed.js",
     "start:dev": "nodemon server.js",
     "start": "node server.js",
+    "concurrently": "concurrently",
     "test": "jest --runInBand",
     "test:watch": "jest --runInBand --watchAll",
     "dev:both": "concurrently \"npm run start\" \"npm run dev --prefix client\""
