@@ -11,7 +11,7 @@
     "concurrently": "concurrently",
     "test": "jest --runInBand",
     "test:watch": "jest --runInBand --watchAll",
-    "dev:both": "concurrently \"npm run start\" \"npm run dev --prefix client\""
+    "dev:both": "(npm run dev --prefix client) & npm run start "
   },
   "repository": {
     "type": "git",
