@@ -4,9 +4,18 @@ import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlig
 import "./App.css";
 
 function App() {
+  const [navShrunk, setNavShrunk] = useState(false);
+
+  const toggleNav = () => {
+    setNavShrunk(!navShrunk);
+   
+  };
+
   return (
     <div className="App">
-      <nav>
+      
+      <nav className={`navContainer ${navShrunk ? 'shrunkNav' : ''}`}>
+      <button className={`toggleButton ${navShrunk ? 'active' : ''}`} onClick={toggleNav}>X</button>
         <a href="#top-of-page">Top of page</a>
         <a href="#authentication-through-json-web-tokens">Authentication</a>
         <a href="#general-return-schema">General Return Schema</a>
@@ -89,7 +98,7 @@ function App() {
           </li>
         </ul>
       </nav>
-      <div className="Body">
+      <div className={`Body ${navShrunk ? 'navOpen' : ''}`}>
         <a>
           <h1 id="top-of-page">FITMATE API Documentation</h1>
         </a>

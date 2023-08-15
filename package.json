@@ -24,12 +24,8 @@
     "jquery",
     "javascript"
   ],
-  "author": "Preston Wallace",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/wallacepreston/fitnesstrackr/issues"
-  },
-  "homepage": "https://github.com/wallacepreston/fitnesstrackr#readme",
+  "author": "Jeremie Walls",
+  "license": "none", 
   "devDependencies": {
     "concurrently": "^8.0.1",
     "eslint": "^8.2.0",
@@ -52,8 +48,7 @@
     "morgan": "^1.10.0",
     "pg": "^8.2.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^3.1.0",
+    "react-dom": "^18.2.0",   
     "react-syntax-highlighter": "^15.5.0",
     "vite": "^4.2.0"
   }
